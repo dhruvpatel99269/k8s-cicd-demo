@@ -21,7 +21,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "🔹 Building Docker image..."
-                dir('student-dashboard') { // remove if Dockerfile is in root
+                dir('student-dashboard') { // remove this if Dockerfile is in root
                     bat """
                     docker build -t ${FULL_IMAGE} .
                     """
@@ -37,16 +37,6 @@ pipeline {
                 docker push ${FULL_IMAGE}
                 docker tag ${FULL_IMAGE} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
                 docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
-                """
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                echo "🔹 Deploying to Kubernetes..."
-                bat """
-                kubectl set image deployment/student-dashboard student-dashboard=${FULL_IMAGE} --record
-                kubectl rollout status deployment/student-dashboard
                 """
             }
         }

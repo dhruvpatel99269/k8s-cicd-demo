@@ -2,16 +2,16 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKERHUB_USERNAME = "dhruv99269"
-        DOCKERHUB_REPO = "k8s-cicd-demo"
-        IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')  // Jenkins credential ID
+        DOCKERHUB_USERNAME = 'dhruv99269'
+        IMAGE_NAME = 'k8s-cicd-demo'
+        IMAGE_TAG = "v${env.BUILD_NUMBER}" // example: v5
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo '🔹 Checking out source code...'
+                echo "🔹 Checking out source code..."
                 checkout scm
                 bat 'git log -1 --pretty=oneline'
             }
@@ -19,40 +19,34 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo '🔹 Building Docker image...'
+                echo "🔹 Building Docker image..."
                 dir('student-dashboard') {
                     bat """
-                        docker build -t ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG} .
-                        docker tag ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
+                    docker build -t %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% .
                     """
                 }
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Push Docker Image') {
             steps {
-                echo '🔹 Pushing image to DockerHub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat """
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
-                    """
-                }
+                echo "🔹 Pushing image to Docker Hub..."
+                bat """
+                docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_CREDENTIALS_PSW%
+                docker push %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
+                docker tag %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% %DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest
+                docker push %DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest
+                """
             }
         }
-    }
 
-    post {
-        success {
-            echo "✅ Successfully built and pushed image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG}"
-        }
-        failure {
-            echo '❌ Pipeline failed!'
-        }
-        always {
-            echo '🧹 Cleaning workspace...'
-            cleanWs()
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo "🔹 Deploying to Kubernetes..."
+                bat """
+                kubectl apply -f k8s/deployment.yaml
+                """
+            }
         }
     }
 }

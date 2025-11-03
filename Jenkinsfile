@@ -13,7 +13,7 @@ pipeline {
             steps {
                 echo '🔹 Checking out source code...'
                 checkout scm
-                sh 'git log -1 --pretty=oneline'
+                bat 'git log -1 --pretty=oneline'
             }
         }
 
@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo '🔹 Building Docker image...'
                 dir('student-dashboard') {
-                    sh """
+                    bat """
                         docker build -t ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG} .
                         docker tag ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
                     """
@@ -33,8 +33,8 @@ pipeline {
             steps {
                 echo '🔹 Pushing image to DockerHub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                         docker push ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${IMAGE_TAG}
                         docker push ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
                     """

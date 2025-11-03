@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-dashboard
+  labels:
+    app: student-dashboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: student-dashboard
+  template:
+    metadata:
+      labels:
+        app: student-dashboard
+    spec:
+      containers:
+      - name: student-dashboard
+        image: DOCKERHUB_USERNAME/k8s-cicd-demo:IMAGE_TAG
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-dashboard-service
+  labels:
+    app: student-dashboard
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: student-dashboard
+

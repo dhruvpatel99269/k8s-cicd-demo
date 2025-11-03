@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-dashboard-prod
+  namespace: production
+  labels:
+    app: student-dashboard
+    environment: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: student-dashboard
+      environment: production
+  template:
+    metadata:
+      labels:
+        app: student-dashboard
+        environment: production
+    spec:
+      containers:
+      - name: student-dashboard
+        image: DOCKERHUB_USERNAME/k8s-cicd-demo:IMAGE_TAG
+        ports:
+        - containerPort: 80
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "200m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-dashboard-service-prod
+  namespace: production
+  labels:
+    app: student-dashboard
+    environment: production
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: student-dashboard
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+

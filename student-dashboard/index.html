@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .student-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .student-card:hover {
+            transform: translateY(-5px);
+        }
+        .student-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .student-card p {
+            color: #555;
+            margin: 5px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .badge-success {
+            background: #4caf50;
+            color: white;
+        }
+        .badge-warning {
+            background: #ff9800;
+            color: white;
+        }
+        .env-banner {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .env-test {
+            background: #ffeb3b;
+            color: #333;
+        }
+        .env-production {
+            background: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Dashboard</h1>
+        <div id="env-banner" class="env-banner"></div>
+        <div class="student-grid" id="studentGrid">
+            <!-- Student cards will be generated here -->
+        </div>
+    </div>
+    <script>
+        // Sample student data
+        const students = [
+            { id: 1, name: "Alice Johnson", course: "Computer Science", grade: "A", status: "Active" },
+            { id: 2, name: "Bob Smith", course: "Mathematics", grade: "B+", status: "Active" },
+            { id: 3, name: "Charlie Brown", course: "Physics", grade: "A-", status: "Active" },
+            { id: 4, name: "Diana Prince", course: "Chemistry", grade: "A", status: "Active" },
+            { id: 5, name: "Eve Williams", course: "Biology", grade: "B", status: "Active" },
+            { id: 6, name: "Frank Miller", course: "Engineering", grade: "A+", status: "Active" }
+        ];
+
+        // Get environment from URL or default to production
+        const urlParams = new URLSearchParams(window.location.search);
+        const env = urlParams.get('env') || 'production';
+
+        // Display environment banner
+        const envBanner = document.getElementById('env-banner');
+        if (env === 'test') {
+            envBanner.className = 'env-banner env-test';
+            envBanner.textContent = '🧪 TEST ENVIRONMENT';
+        } else {
+            envBanner.className = 'env-banner env-production';
+            envBanner.textContent = '🚀 PRODUCTION ENVIRONMENT';
+        }
+
+        // Generate student cards
+        const studentGrid = document.getElementById('studentGrid');
+        students.forEach(student => {
+            const card = document.createElement('div');
+            card.className = 'student-card';
+            card.innerHTML = `
+                <h3>${student.name}</h3>
+                <p><strong>Course:</strong> ${student.course}</p>
+                <p><strong>Grade:</strong> ${student.grade}</p>
+                <span class="badge badge-success">${student.status}</span>
+            `;
+            studentGrid.appendChild(card);
+        });
+
+        // Log deployment info
+        console.log('Student Dashboard Application');
+        console.log('Environment:', env);
+        console.log('Build Date:', new Date().toISOString());
+    </script>
+</body>
+</html>
+

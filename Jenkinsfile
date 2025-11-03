@@ -2,11 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')  // Jenkins credential ID
-        DOCKERHUB_USERNAME = 'dhruv99269'
-        IMAGE_NAME = 'k8s-cicd-demo'
-        IMAGE_TAG = "v${env.BUILD_NUMBER}" // example: v5
-    }
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+    DOCKERHUB_USERNAME = "dhruv99269"
+    DOCKERHUB_REPO = "k8s-cicd-demo"
+    IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+}
+
 
     stages {
         stage('Checkout') {

@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-    DOCKERHUB_USERNAME = "dhruv99269"
-    DOCKERHUB_REPO = "k8s-cicd-demo"
-    IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-}
-
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_USERNAME = "dhruv99269"
+        IMAGE_NAME = "k8s-cicd-demo"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        FULL_IMAGE = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+    }
 
     stages {
         stage('Checkout') {
@@ -21,9 +21,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "🔹 Building Docker image..."
-                dir('student-dashboard') {
+                dir('student-dashboard') { // remove if Dockerfile is in root
                     bat """
-                    docker build -t %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% .
+                    docker build -t ${FULL_IMAGE} .
                     """
                 }
             }
@@ -33,10 +33,10 @@ pipeline {
             steps {
                 echo "🔹 Pushing image to Docker Hub..."
                 bat """
-                docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_CREDENTIALS_PSW%
-                docker push %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
-                docker tag %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% %DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest
-                docker push %DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest
+                docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW}
+                docker push ${FULL_IMAGE}
+                docker tag ${FULL_IMAGE} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
+                docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
                 """
             }
         }
@@ -45,7 +45,8 @@ pipeline {
             steps {
                 echo "🔹 Deploying to Kubernetes..."
                 bat """
-                kubectl apply -f k8s/deployment.yaml
+                kubectl set image deployment/student-dashboard student-dashboard=${FULL_IMAGE} --record
+                kubectl rollout status deployment/student-dashboard
                 """
             }
         }

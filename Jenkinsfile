@@ -51,9 +51,8 @@ pipeline {
             echo '❌ Pipeline failed!'
         }
         always {
-            node {
-                cleanWs()
-            }
+            echo '🧹 Cleaning workspace...'
+            cleanWs()
         }
     }
 }
